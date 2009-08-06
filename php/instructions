@@ -1,0 +1,66 @@
+Side A: PHP
+===========
+
+Alright, let's get started. Everyone has been to song lyric sites before right? The ones that have like a million ads for stupid smilies and shit that pop up all over the lyrics you're trying to read?
+
+Well, we're going to pretend we never discovered AdBlock, and we're going to build a lyrics site that doesn't suck.
+
+Then we'll sell it to Google for eleventy billion dollars and retire to Fiji on our party Jet. All in 2 easy steps (it's a recession, we couldn't afford 3)
+
+(Step 1) "I should have known better"
+
+Open new_song.php. This is a skeleton file that's going to help you out quite a lot.
+
+Read through it, check that you kinda understand what's going on. I'll walk you through.
+
+  - <?php tells PHP "start paying attention to this bit - it's PHP code"
+  - ?> tells PHP "fuggetaboutit, this next bit is plain text/html, no need to do anything to it"
+  
+  - $variable defines a variable in PHP. Is it an int? Is it a String? Is it float? No! It's all of these things, and more!
+    PHP is Dynamically Typed. That means you don't have to tell PHP what kind of variable you want store, it'll just figure
+    things out on its own. Awesome, huh?
+    
+  - function somename($arg1, $arg2, $arg3...) defines - Gold Star for you! - a function! The important thing to note here is the lack
+    of type declaration. That's because PHP (pretty much) doesn't care about types! (A function is roughly analogous to a method inside
+    a class. You can create classes and methods in PHP, but we're not going to bother, because I'm lazy. And OOP is PHP is more painful
+    than that busker guy in Manners Mall who wears the Indian Feather cap).
+    
+  - no prizes for guessing what die() and exit() do
+  
+  - $_POST is a Superglobal. It basically contains all the POST variables that are sent back from your form.
+  
+  - If you want to check what value is in a variable, try using var_dump
+  
+  - Try entering a song with an apostrope (') or speech mark ("). Oh noes! Look up mysql_escape_string...
+
+  - check everything is working using the mysql client on your command line (mysql -u user -p -h host, then type your pwd)
+  
+  - the PHP manual is a lovely thing - http://nz.php.net/manual/en/
+  
+(Step 2) "While everybody else refrained - Uncle Johnny did cocaine"
+
+Well, would ya look at that. You're on your way to internet fame and the adoration of geeks everywhere. 
+
+Check out songs.php.
+
+Hmmm, that's a bit of a let down. What, you thought I was gonna hold your hand all the way through? 
+
+This is a bootcamp, not primary school soldier!
+
+Get cracking. I want that <HEAD> clean enough that I could eat off it!
+
+(Extra For Experts) "Don't you love her as she's walking out the door?"
+
+Well, it would be really awesome to be able to delete a song. Sometimes I feel like I've heard that new Lily Allen song enough already, and I just want
+to erase it from existence.
+
+You will need (in no particular order):
+
+   - One (1) Database connection
+   - One (1) Delete query
+   - One (1) header() call
+   - You probably won't need any HTML
+   - (optionally) you could have a $_GET variable (/myfile.php?getname=getval) that displays a nice confirmation message - "that song is GONE. FOREVER. Come here, it's okay. I know this is an emotional time for you."
+    Something like that.
+    
+FIN.
