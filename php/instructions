@@ -9,7 +9,25 @@ Then we'll sell it to Google for eleventy billion dollars and retire to Fiji on 
 
 (Step 1) "I should have known better"
 
-Open new_song.php. This is a skeleton file that's going to help you out quite a lot.
+Open your mysql client:
+
+  mysql -u user -p -h host
+  
+  (press enter, type your password)
+  
+You should get something like:
+
+   mysql>
+
+Cool? Cool.
+
+Now type the following query:
+
+   create table songs (id int primary key not null auto_increment, title varchar(255), artist varchar(255), album varchar(255), lyrics text);
+
+Sweet. Run "describe songs" if you want to verify that worked.
+
+Now, open new_song.php. This is a skeleton file that's going to help you out quite a lot.
 
 Read through it, check that you kinda understand what's going on. I'll walk you through.
 

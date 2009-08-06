@@ -2,7 +2,7 @@
 
   function connect_to_database() {
     
-    if (!($m = mysql_connect("localhost", "username", "password"))) die("Couldn't connect to mysql, oh noes!");
+    if (!($m = mysql_connect("localhost", "root", ""))) die("Couldn't connect to mysql, oh noes!");
     if (!mysql_select_db("database_name", $m)) die("Couldn't select that db, oh noes!");
   
     return true;
