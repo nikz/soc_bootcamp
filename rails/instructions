@@ -1,0 +1,659 @@
+Side B: Ruby On Rails
+=====================
+
+(Always save the good stuff the B-side)
+
+1. Ok, head back to the Summer of Code git repository that you've cloned, and go into the Rails dir.
+
+Woah, that's a lot of files! These are our _framework_ - they do all the boring shit, so you don't have to.
+
+The important directories here are:
+
+  /app        - this is where you keep all your models, views, and controllers
+  /public     - this is the "face" of your app, and where you'll store your css and images
+  /scripts    - in a second...
+  /test       - tests are good mmmkay!
+  
+Don't stress too much about the rest of them for now.
+
+2. I'm the Generator, firing whenever you quit... 
+
+Cool! So, now we want to start generating some stuff that's specific to our app. We're going
+to use some of the scripts in the (yep, you guessed it) "/scripts" directory.
+
+  # ruby script/generate resource User
+  # ruby script/generate resource Auction
+  # ruby script/generate resource Bid
+
+Ok, so what the heck are we generating? 
+
+In this case, we're generating "resources". These are top level things that we're gonna talk about
+all the way from our controllers down to our data model. 
+
+You can also use the generators to generate skeleton models, controllers, migrations (more later...),
+and a bunch of other stuff. Use "ruby script/generate -h" and "ruby script/generate <whatever> -h" 
+
+3. Mongrels!
+
+Sweet, we've got our resources set up. Let's start everything up.
+
+  # ruby script/server
+
+This will start "mongrel". It's a webserver that comes with rails. By default, mongrel listens on 
+port 3000.
+
+So go to "http://localhost:3000" in your browser of choice (cool kids use Firefox).
+
+If you're lucky, you're getting something that says: 
+
+  Welcome aboard
+  You're riding Ruby on Rails!
+
+(Try to become immune to cheesy train-related puns. For some reason rails people think this is
+_highly humorous_)
+
+Ok, so now we're going to delete the stupid welcome page:
+
+  # rm public/index.html
+
+(You'll need to press ctrl+c to kill mongrel first)
+
+Now refresh (ctrl+f5) Firefox.
+
+Haha! You're probably staring at a page that says:
+
+  Failed to connect
+  Firefox can't blah blah can't be bothered typing the rest ...
+
+Why is that? (Free cookie for the first person who manages to yell it at me*)
+
+Ok, smart-ass. Start your server again. Another cookie* if you manage to do it without
+referring back to step (4).
+
+5. WTF!? Another error? 
+
+   Routing Error
+   No route matches "/" with {:method=>:get}
+
+Lame. Why are we getting this? Oh yeah, we deleted rails' default page and we didn't tell it
+to do anything instead.
+
+Ok, now we're going to do some hand-wavy stuff that i'll explain later if we have time. For
+now, assume the following is a magical incantation and paste it into "config/routes.rb".
+
+<<
+
+ActionController::Routing::Routes.draw do |map|
+  
+  # it's like magic!
+  map.resources :users
+  map.resources :auctions, :has_many => [ :bids ]
+
+  map.root      :controller => 'auctions'
+
+end
+
+>>
+
+(In actual fact, you probably don't need to be a Computer Scientist to figure out what that does)
+
+5. Models! The Data kind, not the America's-Next-Top kind.
+
+Now we're going to do some fancy stuff to make our models work like our UML. Message to take 
+away from all of this: ActiveRecord is cool.
+
+Ok, our models are all in app/models. They should be sitting there patiently for you, auction.rb,
+bid.rb and user.rb.
+
+class Auction < ActiveRecord::Base
+end
+
+This means Auction is a subclass of ActiveRecord::Base. Because of your naming, rails assumes a 
+bunch of stuff, the most important of which is:
+
+ > you have a table in your database called "auctions" where each row maps onto an instance of
+   Auction
+
+We'll get to that later. For now, make your models look like this:
+
+<<
+
+class Auction < ActiveRecord::Base
+
+ has_many   :bids
+ has_many   :buyers,  :through    => :bids, :source => :user
+ belongs_to :seller,  :class_name => "User"
+
+end
+
+class Bid < ActiveRecord::Base
+
+  belongs_to :auction
+  belongs_to :user
+
+end
+
+class User < ActiveRecord::Base
+
+  has_many :bids
+  has_many :auctions, :foreign_key => "seller_id"
+
+end
+
+>>
+
+A bunch of this is more hand-waving to decipher later. Sorry, don't have much time.
+You can probably see that these are: 
+
+  a) Pleasantly close to English and;
+  b) Defining our model relationships
+
+What you probably don't know is:
+
+  c) These are all just standard Ruby method calls. There is no magic here. This is
+     meta-programming - programs that write programs. These calls are defining a 
+     bunch of stuff for us (which we'll see later)
+
+6. Databases and Migrations and SQL, Oh My!
+
+Ok, we've got models, we're just missing some persistent storage, a.k.a A database.
+
+  # cd db/migrate
+  # ls -lah
+
+You should see something like:
+
+-rw-r--r-- 20080723043954_create_users.rb
+-rw-r--r-- 20080723045534_create_auctions.rb
+-rw-r--r-- 20080723045538_create_bids.rb
+
+(cd back a couple levels when you're done ogling)
+
+Ignore the ridiculous numbers for now. Open those files and make them look like this:
+
+<<
+class CreateUsers < ActiveRecord::Migration
+  def self.up
+    create_table :users do |t|
+      t.string      :email, :name
+      t.integer     :feedback_score
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :users
+  end
+end
+>>
+
+<<
+class CreateAuctions < ActiveRecord::Migration
+  def self.up
+    create_table :auctions do |t|
+
+      t.string      :title, :photo_file_name, :photo_content_type
+      t.text        :description
+      t.integer     :reserve_price, :photo_file_size, :seller_id
+
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :auctions
+  end
+end
+>>
+
+<<
+class CreateBids < ActiveRecord::Migration
+  def self.up
+    create_table :bids do |t|
+
+      t.integer :amount, :user_id, :auction_id
+
+      t.timestamps
+    end
+  end
+
+  def self.down
+    drop_table :bids
+  end
+end
+>>
+
+See how we're defining our database schema in Ruby, rather than any particular SQL dialect? 
+Cool huh?
+
+Ok, more magic for now. The important things to notice are the "_id" fields. These follow a
+convention so that Rails can set up the associations the way we asked it to. 
+
+Now run:
+
+  # rake db:migrate
+
+Hopefully you'll get some output with a lot of "=" signs in it, and everything will exit 
+smoothly.
+
+Hang on.
+
+We never defined a database did we? What the heck?
+
+Rails ships with "sensible" defaults. In this case, it automagically assumes you have sqlite
+installed and just uses that. Check out db/development.sqlite3. Yeah, that's our database.
+
+(Extra for experts: Check out database.yml, google "Yaml is not a Markup Language")
+
+7. My console is green text on a black background so people think I am in the Matrix
+
+Okay, now we're gonna test some of this stuff out.
+
+There's more magic here than you can shake a false-bottomed hat at, so just bear with me.
+
+  # ruby script/console
+
+It should say "Loading development environment (Rails 2.2.3)". Now you're inside an IRB console, with added Rails goodies!
+(NB: => means "this is the output you should get", >> means "type this command", 
+ "..." means I cbf pasting all the output)
+
+  >> Auction.find(:all)
+  => []
+  
+  Makes sense, we don't have any auctions do we?
+  
+  Let's make one!
+  
+  >> marsellus = User.create!(:name => "Marsellus Wallace", :email => "do_i_look_like_a_bitch@gmail.com", :feedback_score => 100)
+  => ...
+
+  That's a user, but we're on the right track.
+
+  >> chopper = Auction.create!(:title => "Butch's Chopper", :description => "This is a chopper baby", :reserve_price => 50, :seller_id => marsellus)
+  => ...
+
+  Cool! Now try:
+  
+  >> Auction.all
+  => [...]
+  
+  >> marsellus.auctions
+  => [#<Auction id: 1.... >]
+  
+  Well, ain't that just shit hot! Try doing _that_ in PHP!
+
+That should kinda give you an idea of other things you can play with. "has_many" makes plurals, "belongs_to" makes singulars. Try:
+
+  >> chopper.seller
+  >> chopper.buyers
+
+You can access all the db fields too:
+
+  >> chopper.reserve_price
+  >> marsellus.feedback_score
+
+8. I have to put this on the internets if I am going to able to afford my Party Jet.
+
+Ok, so we've been over the M part of MVC, let's get down to some serious controller-ing.
+
+First off, views in rails are per controller, and they are kept in "/app/views/controller_name". So you should have:
+
+  /app/views/users
+  /app/views/auctions
+  /app/views/bids
+
+Controllers have 7 "actions" (really just methods):
+
+"index", "show", "new", "create", "edit", "update", "destroy"
+
+Commit this table to memory.
+
+URI                HTTP METHOD    ACTION       HELPER                       WHAT IT'S FOR
+/auctions          GET            index        auctions_url                 Getting a list of auctions
+/auctions/5        GET            show         auction_url(@auction)        Showing me Auction 5
+/auctions/new      GET            new          new_auction_url              Showing me the form to create a new auction
+/auctions          POST           create       auctions_url                 Doing the grunt work of making an auction
+/auctions/5/edit   GET            edit         edit_auction_url(@auction)   Showing me the form the edit auction 5
+/auctions/5        PUT            update       auction_url(@auction)        Doing the grunt work of updating an auction
+/auctions/5        DELETE         destroy      auction_url(@auction)        BOOM!
+
+So that shows how we've connected what you type in your browser with our controllers.
+
+(PS try running "rake routes". Woah!)
+
+Go to: http://localhost:3000/auctions (don't forget to start mongrel)
+
+You should get:
+
+  No action responded to index
+
+Ok rails, I know how to play your game.
+
+ADD this into auctions_controller.rb (app/controllers):
+
+<<
+def index
+  @auctions = Auction.all
+end
+>>
+
+(Don't delete the class definition - that goes inside the class!)
+
+Create these files:
+
+/app/views/layouts/application.html.erb
+<<
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+  "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+  <title>Million-Dollar Auctions</title>
+  
+</head>
+
+<body>
+
+  
+
+  <h1>My &#9733;Awesome&#9733; Auction Site</h1>
+
+
+  <%= yield -%>
+
+
+</body>
+</html>
+>>
+
+(Layouts are used for rendering things before and after every single page in your application.)
+
+/app/views/auctions/index.html.erb
+<<
+
+<h2>Auctions</h2>
+
+  <ul>
+    
+    <% @auctions.each do |a| -%>
+    
+      <li><%= link_to a.title, a -%></li>
+    
+    <% end -%>
+    
+  </ul>
+>>
+
+Now go to: http://localhost:3000/ again.
+Awesome, ain't it? 
+
+Click the link.
+
+Uh oh, we didn't write "show" did we?
+
+ADD this to auctions_controller.rb:
+<<
+def show
+  @auction = Auction.find(params[:id])
+end
+>>
+
+(params[] is a hash of GET and POST parameters that get sent to this page)
+
+Create /app/views/auctions/show.html.erb. This should be old hat now ;)
+<<
+<h2><%= @auction.title -%></h2>
+
+<p>
+  <%= h @auction.description -%>
+</p>
+
+<h2>Bids</h2>
+
+<ul>
+<% @auction.bids.each do |b| -%>
+    
+    <li><%= number_to_currency(b.amount) -%> from <%= link_to b.user.name, b.user -%></li>
+  
+<% end -%>
+</ul>
+
+<%= render :partial => "bids/new" -%>
+>>
+
+This *won't work* for now. You need to create one more file:
+
+/app/views/bids/_new.html.erb
+<<
+<% form_for([@auction, Bid.new]) do |f| -%>
+  
+  <strong>Make a bid:</strong> $<%= f.text_field :amount, :size => 3 -%> 
+  
+  <%= f.submit "Bid for it!" -%>
+  
+<% end -%>
+>>
+
+There is a lot of magic here! I'm hoping you guys will take this all home and investigate,
+because it's really pretty simple - it just takes some careful sleuthing.
+
+So, take a look at: http://localhost:3000/auctions/1 again (or whatever your auction id is)
+
+Cool! There's a bid thing there. Clicking it will give you an error at the moment, so don't
+stress if your auction site doesn't work just yet. There are still two steps to go!
+
+Press View > Source in Firefox. Take a look at the form that form_for generated:
+
+  <form action="/auctions/1/bids" class="new_bid" id="new_bid" method="post">
+
+(Ignore the authenticity_token bullshit, you don't care about it for now)
+
+Hey, that's cool. Our resources are _nested_. I wonder if that has something to do with
+the :has_many waaaay back in our routes file? ;)
+
+Nested resources work pretty much the same as normal resources, they're just "scoped" down
+to a single "parent" - in this case an auction.
+
+9. Let's finish this up
+
+Okay, we want a working auction site right? So, fill in the bids_controller. First thing
+we're going to do is add a "before_filter". This gets executed before any action in the 
+controller is called. 
+
+
+At the bottom of bids_controller.rb, add
+<<
+  private
+ 
+     def find_auction
+       @auction = Auction.find(params[:auction_id])
+     end
+>>
+
+At the top of that file, just under the class definition, add
+
+<<
+  before_filter :find_auction
+>>
+
+So that takes care of scoping to auction! Now we've gotta write "create" to respond to our
+request to create bids. (Remember: a POST to /auctions/4/bids maps to BidsController#create)
+
+bids_controller.rb
+<<
+  
+  def create
+    @auction.bids.create!(params[:bid].merge(:user => current_user))
+
+    redirect_to auction_url(@auction)
+  end
+  
+>>
+
+(.merge just merges two hashes. In Ruby you can leave off the {} if the hash is the last argument to
+a method. We've been doing it all along - check out your models - but it's most obvious now)
+
+Okay, now we just need something to get the current_user. For now we'll stub this out. Actual user
+authentication is left as an exercise to the reader (I've always wanted to write that. Google
+"restful_authentication" later if you're interested.)
+
+in /app/controllers/application.rb
+<<
+
+  protected
+   
+    def current_user
+      User.find(:first)
+    end
+
+>>
+
+(This should be memoized, but again, exercise to the reader)
+
+Go ahead. Add some bids!
+
+Oh, lame! They're ordered the wrong way round. We should fix that. Remember our magical migrations?
+They had a line that looked like:
+
+  t.timestamps
+
+That line adds two fields that rails automatically populates every time you create or save a record:
+
+  created_at
+  updated_at
+
+So, we want to order by the creation timestamp (desc). Open up auction.rb, and change:
+
+<<
+  has_many    :bids
+>>
+
+to
+
+<<
+  has_many    :bids,    :order      => "created_at desc"
+>>
+
+We can see our change in auction by typing:
+
+  # tail -f log/development.log
+
+(You might need to start a new console and cd to the rails directory)
+
+You'll see *all* the sql that your app is generating. Cool beans! Watch for a line that looks like:
+
+ Bid Load (0.000905)   SELECT * FROM "bids" WHERE ("bids".auction_id = 1) ORDER BY created_at desc
+ 
+See the SQL that's being generated by ActiveRecord? That :order option we used added an ORDER BY clause
+onto our SQL. 
+
+10. I added this step because I enjoy lolcats.
+
+Go find your favourite lolcat. Go on, I'll wait.
+
+We're going to add photo uploads to auctions. It's going to be cool. 
+
+I've installed a plugin called paperclip into the Rails skeleton. It's going to do 90% of the work for us.
+(Thanks, Thoughtbot!)
+
+YOU DON'T NEED TO RUN THIS LINE. IT'S JUST HERE IN CASE YOU WANT TO KNOW HOW TO DO THIS LATER.
+
+  # ruby script/plugin install git://github.com/thoughtbot/paperclip.git
+
+Now add this to auction.rb:
+
+<<
+  has_attached_file :photo
+>>
+
+And this to auctions_controller.rb:
+
+<<
+
+  def new
+    @auction = Auction.new
+  end
+  
+  def create
+    @auction = Auction.create!(params[:auction])
+    
+    redirect_to auction_url(@auction)
+  end
+
+>>
+
+And then create /app/views/auctions/new.html.erb:
+
+<<
+<h2>New Auction</h2>
+
+<% form_for(@auction, :html => { :multipart => true }) do |f| -%>
+  
+  <p>
+    <label for="auction_title">Title:</label> <br />
+    <%= f.text_field :title -%>
+  </p>
+  
+  <p>
+    <label for="auction_description">Description:</label> <br />
+    <%= f.text_area :description, :size => "25x5" -%>
+  </p>
+  
+  
+  <p>
+    <label for="auction_reserve_price">Reserve Price:</label> <br />
+    $<%= f.text_field :reserve_price, :size => 3 -%>
+  </p>
+  
+  <p>
+    <label for="auction_photo">Photo:</label><br />
+    <%= f.file_field :photo -%>
+  </p>
+  
+  <p>
+    <%= f.submit "Sell it!" -%>
+  </p>
+  
+<% end -%>
+>>
+
+And then we need a link to create a new auction at the top of:
+
+/app/auctions/index.html.erb:
+<<
+<%= link_to "Sell something new", new_auction_url -%>
+>>
+
+And throw this into /auctions/show.html.erb
+<<
+<div style="float: right;">
+  <%= image_tag @auction.photo.url %>
+</div>
+>>
+
+Now go back to: http://localhost:3000/ and make a new auction with your lolcat!
+
+--
+
+That seems like enough for now!
+
+How was that? I know, I know, there was a lot there, but we had to get stuff done fast.
+Hopefully, you'll go home, google around and investigate anything you don't understand.
+
+There's also the ridiculously useful Rails Guides Site: http://guides.rubyonrails.org/
+
+Here's a couple ideas for things you might want to add (and that might impress some
+SoC employers, hint hint).
+
+  * AJAX adding of the bids (Google Keywords: RJS, respond_to rails)
+  * Letting me edit my auction
+  * Sending me an email when my auction reaches the reserve price
+  * Making my auction urls include the title (/auctions/5-marsellus-chopper)
+  * .... much much more ...
+  
+FIN
+
+--
+
+* NB: I have no actual cookies. Sorry.
