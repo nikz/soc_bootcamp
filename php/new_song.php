@@ -14,7 +14,7 @@
     // COMPLETE ME
     
     // THIS WILL HELP YOU: http://nz.php.net/manual/en/function.mysql-query.php
-    // QUERY HINT: insert into `users` set name = '$something';   
+    // QUERY HINT: insert into `users` (name) values ('$something');   
      
   }
   
