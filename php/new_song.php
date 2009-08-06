@@ -2,8 +2,8 @@
 
   function connect_to_database() {
     
-    if (!($m = mysql_connect("localhost", "root", ""))) die("Couldn't connect to mysql, oh noes!");
-    if (!mysql_select_db("database_name", $m)) die("Couldn't select that db, oh noes!");
+    if (!mysql_connect("localhost", "user", "pass")) die("Couldn't connect to mysql, oh noes!");
+    if (!mysql_select_db("db")) die("Couldn't select that db, oh noes!");
   
     return true;
     
@@ -14,17 +14,15 @@
     // COMPLETE ME
     
     // THIS WILL HELP YOU: http://nz.php.net/manual/en/function.mysql-query.php
-    // QUERY HINT: insert into `users` set name = '$something';    
-    
-    return false;
-    
+    // QUERY HINT: insert into `users` set name = '$something';   
+     
   }
   
   connect_to_database();
   
   if ($_POST["add"]) {
     
-    if (add_song($_POST)) {
+    if (create_song($_POST)) {
       
       header("Location: songs.php");
       exit(); 
@@ -54,9 +52,9 @@
 
   <h1>Non Sucky Lyrics Site</h1>
   
-  <p>The time is: <?php echo(date("%H:%i:%s")) ?></p>
+  <p>The time is: <?php echo(date("H:i:s")) ?></p>
   
-  <form action="new_song.php">
+  <form action="new_song.php" method="post">
     
     <p>
       <label>Artist</label><br />
@@ -75,7 +73,7 @@
     
     <p>
       <label>Lyrics</label><br />
-      <textarea name="lyrics" rows="50" cols="30" />
+      <textarea name="lyrics" rows="30" cols="30"></textarea>
     </p>
     
     <p>
@@ -88,6 +86,3 @@
 
 </body>
 </html>
-
-
-

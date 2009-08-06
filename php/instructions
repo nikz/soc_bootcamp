@@ -27,7 +27,12 @@ Now type the following query:
 
 Sweet. Run "describe songs" if you want to verify that worked.
 
-Now, open new_song.php. This is a skeleton file that's going to help you out quite a lot.
+Now, open new_song.php. This is a skeleton file that's going to help you out quite a lot. You can view your files after they've been run
+through the webserver by visiting:
+
+   http://ecs.vuw.ac.nz/~username
+ 
+In a web browser.
 
 Read through it, check that you kinda understand what's going on. I'll walk you through.
 
@@ -48,6 +53,14 @@ Read through it, check that you kinda understand what's going on. I'll walk you 
   - $_POST is a Superglobal. It basically contains all the POST variables that are sent back from your form.
   
   - If you want to check what value is in a variable, try using var_dump
+  
+  - You can interpolate (insert) variables into strings like this: "This is my $name" (only for double-quoted strings)
+  
+  - You can also concatenate (join) strings using the "." operator: "This is my " . $name
+  
+  - There are no arrays in PHP, everything is a HashMap. You can access values in a hash map using: $hashmap[key]
+  
+  - The superglobals (i.e. $_POST) are hashmaps. Try var_dump....
   
   - Try entering a song with an apostrope (') or speech mark ("). Oh noes! Look up mysql_escape_string...
 
