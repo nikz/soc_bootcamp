@@ -1,9 +1,7 @@
-Side B: Ruby On Rails
-=====================
+Summer of Tech Bootcamp: Ruby On Rails
+======================================
 
-(Always save the good stuff the B-side)
-
-1. Ok, head back to the Summer of Code git repository that you've cloned, and go into the Rails dir.
+1. Ok, head to the Summer of Code git repository that you've cloned.
 
 Woah, that's a lot of files! These are our _framework_ - they do all the boring shit, so you don't have to.
 
@@ -341,7 +339,7 @@ end
 
 Create these files:
 
-/app/views/layouts/application.html.erb
+/app/views/layouts/application.erb
 <<
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
@@ -369,7 +367,7 @@ Create these files:
 
 (Layouts are used for rendering things before and after every single page in your application.)
 
-/app/views/auctions/index.html.erb
+/app/views/auctions/index.erb
 <<
 
 <h2>Auctions</h2>
@@ -401,7 +399,7 @@ end
 
 (params[] is a hash of GET and POST parameters that get sent to this page)
 
-Create /app/views/auctions/show.html.erb. This should be old hat now ;)
+Create /app/views/auctions/show.erb. This should be old hat now ;)
 <<
 <h2><%= @auction.title -%></h2>
 
@@ -424,7 +422,7 @@ Create /app/views/auctions/show.html.erb. This should be old hat now ;)
 
 This *won't work* for now. You need to create one more file:
 
-/app/views/bids/_new.html.erb
+/app/views/bids/_new.erb
 <<
 <% form_for([@auction, Bid.new]) do |f| -%>
   
@@ -583,7 +581,7 @@ And this to auctions_controller.rb:
 
 >>
 
-And then create /app/views/auctions/new.html.erb:
+And then create /app/views/auctions/new.erb:
 
 <<
 <h2>New Auction</h2>
@@ -620,12 +618,12 @@ And then create /app/views/auctions/new.html.erb:
 
 And then we need a link to create a new auction at the top of:
 
-/app/auctions/index.html.erb:
+/app/auctions/index.erb:
 <<
 <%= link_to "Sell something new", new_auction_url -%>
 >>
 
-And throw this into /auctions/show.html.erb
+And throw this into /auctions/show.erb
 <<
 <div style="float: right;">
   <%= image_tag @auction.photo.url %>
